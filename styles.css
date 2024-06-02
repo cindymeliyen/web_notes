@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+    width: 400px;
+    height: 250px;
+}
+
+h1 {
+    font-size: 18px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    font-family: Arial, sans-serif;
+}
+
+button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Additional optional styles for better UX */
+button:focus {
+    outline: none;
+}
