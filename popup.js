@@ -14,17 +14,28 @@ document.getElementById('saveBtn').addEventListener('click', () => {
         let fullUrl = new URL(tabs[0].url);
         url = fullUrl.origin + fullUrl.pathname;  // Get the base URL without query parameters
         let title = tab.title;  // Get the title of the current tab
-        let data = {};
-        data[url] = { note: note, title: title, timestamp: timestamp };
-        chrome.storage.sync.set(data, () => {
-            console.log('Note saved for:', url);
-            document.getElementById('lastUpdated').textContent = 'Last updated: ' + timestamp;
-            // Optionally revert the color back after a delay
-            setTimeout(() => {
+
+        if (note.trim() === "") {
+            // Remove data if note is blank
+            chrome.storage.sync.remove(url, () => {
+                console.log('Note removed for:', url);
+                document.getElementById('lastUpdated').textContent = 'Note removed';  // Update the timestamp display
                 saveBtn.style.backgroundColor = '';  // Revert to original color
                 saveBtn.textContent = originalText;  // Revert to original text
-            }, 1500);  // Delay in milliseconds
-        });
+            });
+        } else {
+            let data = {};
+            data[url] = { note: note, title: title, timestamp: timestamp };
+            chrome.storage.sync.set(data, () => {
+                console.log('Note saved for:', url);
+                document.getElementById('lastUpdated').textContent = 'Last updated: ' + timestamp;
+                // Optionally revert the color back after a delay
+                setTimeout(() => {
+                    saveBtn.style.backgroundColor = '';  // Revert to original color
+                    saveBtn.textContent = originalText;  // Revert to original text
+                }, 1500);  // Delay in milliseconds
+            });
+        }
     });
 });
 
@@ -38,7 +49,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
                     let title = noteData.title ? noteData.title.replace(/(\r\n|\n|\r)/gm, " ") : "No Title";
                     let note = noteData.note ? noteData.note.replace(/(\r\n|\n|\r)/gm, " ") : "No Note";
                     let timestamp = noteData.timestamp ? noteData.timestamp : "No Timestamp";
-                    csvContent += `${url},${title},${note},${timestamp}\n`;  // Replace newlines in notes with spaces for CSV format
+                    csvContent += `"${url}","${title}","${note}","${timestamp}"\n`;  // Replace newlines in notes with spaces for CSV format
                 } else {
                     console.warn('Undefined noteData for URL:', url);
                 }
