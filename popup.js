@@ -3,9 +3,14 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     let url = '';
     let timestamp = new Date().toLocaleString();
 
+    // Change title attributes (tooltips) for buttons
+    document.getElementById('saveBtn').title = 'Save note';
+    document.getElementById('exportBtn').title = 'Export notes as CSV';
+    document.getElementById('uploadBtn').title = 'Upload a CSV file';
+
     // Change button color on click
     let saveBtn = document.getElementById('saveBtn');
-    saveBtn.style.backgroundColor = '#4fc9d9';  // Change to desired color
+    saveBtn.style.backgroundColor = '#4fd9a4';  // Change to desired color
     let originalText = saveBtn.textContent;
     saveBtn.textContent = 'Saved'; // Change text to "saved"
 
@@ -64,6 +69,52 @@ document.getElementById('exportBtn').addEventListener('click', () => {
         link.click();
         document.body.removeChild(link);
     });
+});
+
+document.getElementById('uploadBtn').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', (event) => {
+    let file = event.target.files[0];
+    if (!file) {
+        alert('Please select a CSV file to upload.');
+        return;
+    }
+
+    let reader = new FileReader();
+    reader.onload = (event) => {
+        let csvContent = event.target.result;
+        let rows = csvContent.split('\n');
+
+        // Check headers
+        let headers = rows[0].split(',').map(header => header.trim().replace(/"/g, ''));
+        let expectedHeaders = ["URL", "Title", "Note", "Timestamp"];
+        if (headers.length !== expectedHeaders.length || !expectedHeaders.every((header, index) => header === headers[index])) {
+            alert('Invalid CSV format. Please make sure the CSV file has the correct headers: URL, Title, Note, Timestamp.');
+            return;
+        }
+
+        for (let i = 1; i < rows.length; i++) {  // Skip header row
+            let cols = rows[i].split(',');
+            if (cols.length >= 4) {
+                let url = cols[0].replace(/"/g, '').trim();
+                let title = cols[1].replace(/"/g, '').trim();
+                let note = cols[2].replace(/"/g, '').trim();
+                let timestamp = cols[3].replace(/"/g, '').trim();
+
+                if (url) {
+                    let data = {};
+                    data[url] = { note: note, timestamp: timestamp, title: title };
+                    chrome.storage.sync.set(data, () => {
+                        console.log('Data imported for:', url);
+                    });
+                }
+            }
+        }
+        alert('CSV data uploaded successfully.');
+    };
+    reader.readAsText(file);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
